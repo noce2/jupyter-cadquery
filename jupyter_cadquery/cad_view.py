@@ -40,7 +40,7 @@ with warnings.catch_warnings():
 
 from jupyter_cadquery_widgets.widgets import state_diff
 from .cad_helpers import Grid, Axes
-from .ocp_utils import BoundingBox, is_compound, is_shape, is_solid
+from .utils.ocp import BoundingBox, is_compound, is_shape, is_solid
 from .utils import rotate, Color, Timer
 from .cad_renderer import CadqueryRenderer
 
@@ -247,12 +247,7 @@ class CadqueryView(object):
 
                 self.info.bb_info(
                     shape["name"],
-                    (
-                        (bbox.xmin, bbox.xmax),
-                        (bbox.ymin, bbox.ymax),
-                        (bbox.zmin, bbox.zmax),
-                        bbox.center,
-                    ),
+                    ((bbox.xmin, bbox.xmax), (bbox.ymin, bbox.ymax), (bbox.zmin, bbox.zmax), bbox.center,),
                 )
                 self.pick_last_mesh_color = self.pick_last_mesh.material.color
                 self.pick_last_mesh.material.color = self.pick_color.web_color
@@ -285,12 +280,7 @@ class CadqueryView(object):
 
         # Set up camera
         self.camera = CombinedCamera(
-            position=(1.0, 1.0, 1.0),
-            width=self.width,
-            height=self.height,
-            far=100,
-            orthoFar=100,
-            up=(0.0, 0.0, 1.0),
+            position=(1.0, 1.0, 1.0), width=self.width, height=self.height, far=100, orthoFar=100, up=(0.0, 0.0, 1.0),
         )
         # needs to be an extra step to take effect
         self.toggle_ortho(True)
@@ -362,12 +352,7 @@ class CadqueryView(object):
 
         # Set up Helpers relative to bounding box
         xy_max = max(abs(self.bb.xmin), abs(self.bb.xmax), abs(self.bb.ymin), abs(self.bb.ymax)) * 1.2
-        self.grid = Grid(
-            bb_center=self.bb.center,
-            maximum=xy_max,
-            colorCenterLine="#aaa",
-            colorGrid="#ddd",
-        )
+        self.grid = Grid(bb_center=self.bb.center, maximum=xy_max, colorCenterLine="#aaa", colorGrid="#ddd",)
         self.grid.set_visibility(False)
 
         self.axes = Axes(bb_center=self.bb.center, length=self.grid.grid.size / 2)

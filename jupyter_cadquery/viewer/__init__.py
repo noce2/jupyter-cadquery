@@ -17,7 +17,7 @@
 import cadquery as cq
 import requests
 
-from ..utils import Serializer
+from ..utils.serializer import Serializer
 from .server import start as start_viewer
 
 SERVER = "localhost"

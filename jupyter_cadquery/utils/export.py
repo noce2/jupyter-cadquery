@@ -15,8 +15,8 @@
 #
 
 import cadquery as cq
-from .cad_objects import _PartGroup, _Part
-from .ocp_utils import write_stl_file, is_compound
+from ..cad_objects import _PartGroup, _Part
+from .ocp import write_stl_file, is_compound
 
 
 def exportSTL(cadObj, filename, tolerance=1e-3, angular_tolerance=0.1):
@@ -32,8 +32,5 @@ def exportSTL(cadObj, filename, tolerance=1e-3, angular_tolerance=0.1):
 
     if compound is not None:
         write_stl_file(
-            compound,
-            filename,
-            tolerance=tolerance,
-            angular_tolerance=angular_tolerance,
+            compound, filename, tolerance=tolerance, angular_tolerance=angular_tolerance,
         )

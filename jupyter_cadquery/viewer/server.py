@@ -11,7 +11,7 @@ from IPython.display import display, clear_output
 
 from jupyter_cadquery.cad_display import CadqueryDisplay
 from jupyter_cadquery.cadquery.cad_objects import from_assembly
-from ..utils import Serializer
+from ..utils.serializer import Serializer
 
 CAD_DISPLAY = None
 

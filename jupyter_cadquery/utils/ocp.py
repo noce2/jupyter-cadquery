@@ -2,8 +2,7 @@ import itertools
 from functools import reduce
 import numpy as np
 
-from OCP.gp import gp_Vec, gp_Pnt
-
+from OCP.gp import gp_Vec, gp_Pnt, gp_Trsf, gp_Quaternion
 from OCP.Bnd import Bnd_Box
 from OCP.BRep import BRep_Tool
 from OCP.BRepAdaptor import BRepAdaptor_Curve
@@ -11,35 +10,23 @@ from OCP.BRepBndLib import BRepBndLib
 from OCP.BRepGProp import BRepGProp_Face
 from OCP.BRepMesh import BRepMesh_IncrementalMesh
 from OCP.BRepTools import BRepTools
-
 from OCP.GCPnts import (
     GCPnts_QuasiUniformDeflection,
     GCPnts_UniformAbscissa,
     GCPnts_UniformDeflection,
 )
-
-from OCP.TopAbs import (
-    TopAbs_ShapeEnum,
-    TopAbs_Orientation,
-    TopAbs_VERTEX,
-    TopAbs_EDGE,
-    TopAbs_FACE,
-)
+from OCP.TopAbs import TopAbs_Orientation, TopAbs_VERTEX, TopAbs_EDGE, TopAbs_FACE
 from OCP.TopLoc import TopLoc_Location
 from OCP.TopoDS import TopoDS, TopoDS_Shape, TopoDS_Compound, TopoDS_Solid
-from OCP.TopAbs import TopAbs_FACE
-
 from OCP.TopExp import TopExp_Explorer
-
 from OCP.TopLoc import TopLoc_Location
-
 from OCP.StlAPI import StlAPI_Writer
 
-from cadquery.occ_impl.shapes import downcast
-from .utils import distance
-
-from cadquery.occ_impl.shapes import Compound, Shape
+from cadquery import Color, Location
+from cadquery.occ_impl.shapes import downcast, Compound, Shape
 from cadquery.occ_impl.geom import BoundBox
+
+from .helpers import distance
 
 
 class BoundingBox(object):
@@ -285,8 +272,31 @@ def tq(loc):
     return (t, (q.X(), q.Y(), q.Z(), q.W()))
 
 
+def from_loc(loc):
+    t, q = tq(loc)
+    return {"t": t, "q": q}
+
+
+def to_loc(t, q):
+    trsf = gp_Trsf()
+    trsf.SetRotation(gp_Quaternion(*q))
+    trsf.SetTranslationPart(gp_Vec(*t))
+
+    return Location(trsf)
+
+
 def get_rgb(color):
     if color is None:
         return (176, 176, 176)
     rgb = color.wrapped.GetRGB()
     return (int(255 * rgb.Red()), int(255 * rgb.Green()), int(255 * rgb.Blue()))
+
+
+def to_rgb(color):
+    rgb = color.wrapped.GetRGB()
+    return (rgb.Red(), rgb.Green(), rgb.Blue())
+
+
+def from_rgb(r, g, b):
+    return Color(r, g, b)
+

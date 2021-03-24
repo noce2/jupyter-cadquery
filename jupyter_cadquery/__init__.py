@@ -24,8 +24,7 @@ from .cad_display import (
 )
 
 from .cad_renderer import reset_cache
-from .export import exportSTL
-from .ocp_utils import tq
+from .utils.ocp import tq
 from cadquery import Location
 
 

@@ -1,52 +1,5 @@
 import math
 import numpy as np
-import time
-from webcolors import name_to_rgb, hex_to_rgb, rgb_to_hex
-import ipywidgets as widgets
-
-
-class Color:
-    def __init__(self, color=None):
-        if color is None:
-            self.r = self.g = self.b = 160
-        elif isinstance(color, Color):
-            self.r, self.g, self.b = color.r, color.g, color.b
-        elif isinstance(color, str):
-            if color[0] == "#":
-                c = hex_to_rgb(color)
-            else:
-                c = name_to_rgb(color)
-            self.r = c.red
-            self.g = c.green
-            self.b = c.blue
-        elif isinstance(color, (tuple, list)) and len(color) == 3:
-            if all((isinstance(c, float) and (c <= 1.0) and (c >= 0.0)) for c in color):
-                self.r, self.g, self.b = (int(c * 255) for c in color)
-            elif all((isinstance(c, int) and (c <= 255) and (c >= 0)) for c in color):
-                self.r, self.g, self.b = color
-            else:
-                self._invalid(color)
-        else:
-            self._invalid(color)
-
-    def __str__(self):
-        return f"Color({self.r}, {self.g}, {self.b})"
-
-    def _invalid(self, color):
-        print(f"warning: {color} is an invalid color, using grey (#aaa)")
-        self.r = self.g = self.b = 160
-
-    @property
-    def rgb(self):
-        return (self.r, self.g, self.b)
-
-    @property
-    def percentage(self):
-        return (self.r / 255, self.g / 255, self.b / 255)
-
-    @property
-    def web_color(self):
-        return rgb_to_hex((self.r, self.g, self.b))
 
 
 def explode(edge_list):
@@ -70,37 +23,19 @@ def rad(deg):
 
 def rotate_x(vector, angle):
     angle = rad(angle)
-    mat = np.array(
-        [
-            [1, 0, 0],
-            [0, math.cos(angle), -math.sin(angle)],
-            [0, math.sin(angle), math.cos(angle)],
-        ]
-    )
+    mat = np.array([[1, 0, 0], [0, math.cos(angle), -math.sin(angle)], [0, math.sin(angle), math.cos(angle)],])
     return tuple(np.matmul(mat, vector))
 
 
 def rotate_y(vector, angle):
     angle = rad(angle)
-    mat = np.array(
-        [
-            [math.cos(angle), 0, math.sin(angle)],
-            [0, 1, 0],
-            [-math.sin(angle), 0, math.cos(angle)],
-        ]
-    )
+    mat = np.array([[math.cos(angle), 0, math.sin(angle)], [0, 1, 0], [-math.sin(angle), 0, math.cos(angle)],])
     return tuple(np.matmul(mat, vector))
 
 
 def rotate_z(vector, angle):
     angle = rad(angle)
-    mat = np.array(
-        [
-            [math.cos(angle), -math.sin(angle), 0],
-            [math.sin(angle), math.cos(angle), 0],
-            [0, 0, 1],
-        ]
-    )
+    mat = np.array([[math.cos(angle), -math.sin(angle), 0], [math.sin(angle), math.cos(angle), 0], [0, 0, 1],])
     return tuple(np.matmul(mat, vector))
 
 
@@ -144,36 +79,3 @@ def tree_find_single_selector(tree, selector):
             return result
     return None
 
-
-class Timer:
-    def __init__(self, timeit, activity):
-        self.timeit = timeit
-        self.activity = activity
-        self.start = time.time()
-
-    def stop(self):
-        if self.timeit:
-            print("%-20s %7.2f sec" % (self.activity + ":", time.time() - self.start))
-
-
-class Progress:
-    def __init__(self, max_, width):
-        self.max = max_
-        self.progress = widgets.IntProgress(
-            0,
-            0,
-            max_,
-            layout=widgets.Layout(
-                width=f"{width}px", height="10px", padding="0px 4px 0px 0px !important", margin="-3px 0px -3px 2px"
-            ),
-        )
-        self.progress.add_class("jc-progress")
-
-    def reset(self, max_):
-        self.max = max_
-        self.progress.value = 0
-        self.progress.max = max_
-
-    def update(self):
-        if self.progress.value < self.max:
-            self.progress.value += 1

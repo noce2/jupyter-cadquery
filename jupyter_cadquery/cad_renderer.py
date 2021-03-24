@@ -34,7 +34,7 @@ with warnings.catch_warnings():
     )
 
 from .cad_helpers import CustomMaterial
-from .ocp_utils import (
+from .utils.ocp import (
     is_vertex,
     is_edge,
     discretize_edge,
@@ -257,8 +257,7 @@ class CadqueryRenderer(object):
 
             if isinstance(edge_color, (list, tuple)):
                 lines = LineSegmentsGeometry(
-                    positions=edge_list,
-                    colors=[[color.percentage] * 2 for color in edge_color],
+                    positions=edge_list, colors=[[color.percentage] * 2 for color in edge_color],
                 )
                 mat = LineMaterial(linewidth=edge_width, vertexColors="VertexColors")
                 edge_lines = [IndexedLineSegments2(lines, mat)]
@@ -294,18 +293,10 @@ class CadqueryRenderer(object):
 
                 # Assume that all are edges when first element is an edge
                 if is_edge(shape["shape"][0]):
-                    options = dict(
-                        edges=shape["shape"],
-                        edge_color=shape["color"],
-                        edge_width=3,
-                        render_edges=True,
-                    )
+                    options = dict(edges=shape["shape"], edge_color=shape["color"], edge_width=3, render_edges=True,)
                 elif is_vertex(shape["shape"][0]):
                     options = dict(
-                        vertices=shape["shape"],
-                        vertex_color=shape["color"],
-                        vertex_width=6,
-                        render_edges=False,
+                        vertices=shape["shape"], vertex_color=shape["color"], vertex_width=6, render_edges=False,
                     )
                 else:
                     # Creatge a Compound out of all shapes
@@ -355,7 +346,7 @@ class CadqueryRenderer(object):
         return group
 
     def render(self, shapes, progress):
-        # Since ids are only unique during lifetime of the objects reset the cache for 
+        # Since ids are only unique during lifetime of the objects reset the cache for
         # each call. The cache will only speed up assemblies with multiple same parts
         RENDER_CACHE.reset_cache()
         self.progress = progress

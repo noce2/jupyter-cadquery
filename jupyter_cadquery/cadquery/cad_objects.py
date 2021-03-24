@@ -38,7 +38,7 @@ from jupyter_cadquery.cad_objects import (
 from jupyter_cadquery.cad_display import get_default
 from .cqparts import is_cqparts, convert_cqparts
 from ..utils import Color
-from ..ocp_utils import get_rgb
+from ..utils.ocp import get_rgb
 
 
 class Part(_Part):
