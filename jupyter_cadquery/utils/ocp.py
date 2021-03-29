@@ -1,6 +1,7 @@
 import itertools
 from functools import reduce
 import numpy as np
+from .progress import Timer
 
 from OCP.gp import gp_Vec, gp_Pnt, gp_Trsf, gp_Quaternion
 from OCP.Bnd import Bnd_Box
@@ -85,15 +86,14 @@ class BoundingBox(object):
 # Tessellate and discretize functions
 
 
-def tessellate(shape, tolerance: float, angularTolerance: float = 0.1):
+def tessellate(shape, tolerance: float=1.0, angularTolerance: float = 0.5):
 
     # Remove previous mesh data
     BRepTools.Clean_s(shape)
-
-    triangulated = BRepTools.Triangulation_s(shape, tolerance)
-    if not triangulated:
-        # this will add mesh data to the shape and prevent calculating an exact bounding box after this call
-        BRepMesh_IncrementalMesh(shape, tolerance, True, angularTolerance)
+    
+    timer1 = Timer(True, "| | | | triangulation time")
+    BRepMesh_IncrementalMesh(shape, tolerance, False, angularTolerance, True)
+    timer1.stop()
 
     vertices = []
     triangles = []
@@ -101,9 +101,11 @@ def tessellate(shape, tolerance: float, angularTolerance: float = 0.1):
 
     offset = 0
 
+    timer3 = Timer(True, "| | | | vertices, normals time")
     for face in get_faces(shape):
         loc = TopLoc_Location()
         poly = BRep_Tool.Triangulation_s(face, loc)
+        
         Trsf = loc.Transformation()
 
         reverse = face.Orientation() == TopAbs_Orientation.TopAbs_REVERSED
@@ -141,10 +143,11 @@ def tessellate(shape, tolerance: float, angularTolerance: float = 0.1):
 
             offset += poly.NbNodes()
 
-    if not triangulated:
-        # Remove the mesh data again
-        BRepTools.Clean_s(shape)
-
+    # if not triangulated:
+    #     # Remove the mesh data again
+    #     BRepTools.Clean_s(shape)
+    timer3.stop()
+    
     return (
         np.asarray(vertices, dtype=np.float32),
         np.asarray(triangles, dtype=np.uint32),

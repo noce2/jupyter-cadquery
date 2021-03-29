@@ -11,8 +11,11 @@ from .ocp import from_loc, to_loc, to_rgb, from_rgb
 
 
 class Serializer:
-    def __init__(self, archive_name=".jcq_serialized"):
-        self.archive_name = archive_name
+    tmpdir = Path(tempfile.gettempdir()) / "jcq"
+
+    def __init__(self, archive_name=None):
+        os.makedirs(str(Serializer.tmpdir), exist_ok=True)
+        self.archive_name = archive_name or str(Serializer.tmpdir / "serialized")
 
     def read_obj(self, path, filename):
         return cq.importers.importStep(str(path / filename))
@@ -21,7 +24,11 @@ class Serializer:
         os.makedirs(str(path), exist_ok=True)
         with open(str(path / filename), "w") as fd:
             cq.exporters.exportShape(
-                obj, exportType=export_type, fileLike=fd, tolerance=tolerance, angularTolerance=angular_tolerance,
+                obj,
+                exportType=export_type,
+                fileLike=fd,
+                tolerance=tolerance,
+                angularTolerance=angular_tolerance,
             )
 
     def serialize(self, assembly, export_type="STEP", tolerance=0.1, angular_tolerance=0.1):
@@ -32,12 +39,16 @@ class Serializer:
             result = {
                 "name": assy.name,
                 "filename": "",
-                "loc": from_loc(assy.loc),
-                "color": to_rgb(assy.color),
                 "children": [],
             }
 
             if assy.obj is not None:
+                result["loc"] = from_loc(assy.loc)
+                if assy.color is not None:
+                    result["color"] = to_rgb(assy.color)
+                else:
+                    result["color"] = (232 / 255, 176 / 255, 36 / 255)
+
                 filename = f'{assy.name.replace("/", "%2f")}.{export_type.lower()}'
                 result["filename"] = str(path / filename)
                 self.save_obj(
@@ -54,7 +65,7 @@ class Serializer:
 
             return result
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
+        with tempfile.TemporaryDirectory(prefix="jcq_") as tmpdirname:
             tmpdir = Path(tmpdirname)
 
             definition = _serialize(assembly, tmpdir)
@@ -71,16 +82,27 @@ class Serializer:
             if definition.get("filename") == "":
                 assy = cq.Assembly(
                     name=definition["name"],
-                    loc=to_loc(definition["loc"]["t"], definition["loc"]["q"]),
-                    color=from_rgb(*definition["color"]),
+                    loc=(
+                        to_loc(definition["loc"]["t"], definition["loc"]["q"])
+                        if definition.get("loc") is not None
+                        else cq.Location()
+                    ),
                 )
             else:
                 obj = self.read_obj(tmpdir, definition["filename"])
                 assy = cq.Assembly(
                     obj,
                     name=definition["name"],
-                    loc=to_loc(definition["loc"]["t"], definition["loc"]["q"]),
-                    color=from_rgb(*definition["color"]),
+                    loc=(
+                        to_loc(definition["loc"]["t"], definition["loc"]["q"])
+                        if definition.get("loc") is not None
+                        else cq.Location()
+                    ),
+                    color=(
+                        from_rgb(*definition["color"])
+                        if definition.get("color") is not None
+                        else from_rgb(232 / 255, 176 / 255, 36 / 255)
+                    ),
                 )
 
             for c in definition["children"]:
@@ -88,7 +110,7 @@ class Serializer:
 
             return assy
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
+        with tempfile.TemporaryDirectory(prefix="jcq_") as tmpdirname:
             tmpdir = Path(tmpdirname)
 
             shutil.unpack_archive(f"{self.archive_name}.tar.gz", extract_dir=tmpdir, format="gztar")

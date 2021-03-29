@@ -1,7 +1,8 @@
 import cadquery as cq
 from cadquery_massembly import MAssembly
+
 # from cadquery_massembly.cq_editor import show_mates
-from jupyter_cadquery_viewer import show_object, set_server
+from jupyter_cadquery.viewer import show_object, set_server
 
 set_server("banach")
 

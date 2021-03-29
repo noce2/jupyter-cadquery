@@ -72,11 +72,14 @@ class RenderCache:
 
         hash = id(compound)  # use python id instead of compound.HashCode(HASH_CODE_MAX)
         if self.objects.get(hash) is None:
+            timer1 = Timer(True, "| | | | tesselate time")
             np_vertices, np_triangles, np_normals = tessellate(compound, quality, angular_tolerance)
+            timer1.stop()
 
             if np_normals.shape != np_vertices.shape:
                 raise AssertionError("Wrong number of normals/shapes")
 
+            timer2 = Timer(True, "| | | | geometry time")
             shape_geometry = BufferGeometry(
                 attributes={
                     "position": BufferAttribute(np_vertices),
@@ -84,6 +87,7 @@ class RenderCache:
                     "normal": BufferAttribute(np_normals),
                 }
             )
+            timer2.stop()
             if debug:
                 print(f"| | | (Caching {hash})")
             self.objects[hash] = shape_geometry
@@ -214,14 +218,16 @@ class CadqueryRenderer(object):
                 vertex_color = self.default_edge_color  # same as edge_color
 
             # Compute the tesselation and build mesh
-            tesselation_timer = Timer(self.timeit, "| | | build mesh time")
+            tesselation_timer = Timer(self.timeit, "| | | tessellation time")
             shape_geometry = RENDER_CACHE.tessellate(shape, self.quality, self.angular_tolerance, self.timeit)
+            tesselation_timer.stop()
 
+            mesh_timer = Timer(self.timeit, "| | | build mesh time")
             shp_material = material(mesh_color.web_color, transparent=transparent, opacity=opacity)
             # Do not cache building the mesh. Might lead to unpredictable results
             shape_mesh = IndexedMesh(geometry=shape_geometry, material=shp_material)
+            mesh_timer.stop()
 
-            tesselation_timer.stop()
 
             if render_edges:
                 edges = get_edges(shape)

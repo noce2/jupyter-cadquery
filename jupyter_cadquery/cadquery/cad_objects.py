@@ -380,7 +380,7 @@ def auto_show():
     Edges._ipython_display_ = lambda self: self.show(grid=False, axes=False)
     Vertices._ipython_display_ = lambda self: self.show(grid=False, axes=False)
 
-    print("Overwriting auto display for cadquery Workplane and Shape")
+    # print("Overwriting auto display for cadquery Workplane and Shape")
 
     import cadquery as cq
 

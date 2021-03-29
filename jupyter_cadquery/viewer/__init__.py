@@ -18,7 +18,7 @@ import cadquery as cq
 import requests
 
 from ..utils.serializer import Serializer
-from .server import start as start_viewer
+from .server import start_viewer, stop_viewer
 
 SERVER = "localhost"
 API_PORT = 8842
@@ -38,9 +38,16 @@ def set_tolerance(tolerance=0.1, angularTolerance=0.1):
     ANGULAR_TOLERANCE = angularTolerance
 
 
-def show_object(assy, reset=True, tolerance=0.01, angularTolerance=0.01):
+def show_object(*cad_objs, reset=True, remote=False, tolerance=0.01, angularTolerance=0.01):
+    if len(cad_objs) == 1 and isinstance(cad_objs[0], cq.Assembly):
+        assy = cad_objs[0]
+    else:
+        assy = cq.Assembly(name="Group")
+        for i, obj in enumerate(cad_objs):
+            assy.add(obj, name=f"obj_{i}")
     archive = Serializer().serialize(assy, tolerance=tolerance, angular_tolerance=angularTolerance)
-    data = open(archive, "rb").read()
-    headers = {"Content-Type": "application/binary"}
-    params = f"?reset={reset}"
-    requests.post(f"http://{SERVER}:{API_PORT}/{params}", data=data, headers=headers)
+    if remote:
+        data = open(archive, "rb").read()
+        headers = {"Content-Type": "application/binary"}
+        params = f"reset={reset}"
+        requests.post(f"http://{SERVER}:{API_PORT}/?{params}", data=data, headers=headers)

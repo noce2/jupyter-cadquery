@@ -72,7 +72,7 @@ disk_arm.mate("base@faces@>Z", name="arm_pivot")
 disk_arm.mate("disk@faces@>Z[-2]", name="disk", origin=True)
 disk_arm.mate("arm?mate", name="arm", origin=True)
 
-show_object(disk_arm, reset=False)
+# show_object(disk_arm, reset=False)
 
 disk_arm.assemble("arm", "arm_pivot")
 disk_arm.assemble("disk", "disk_pivot")
